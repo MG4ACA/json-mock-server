@@ -1,6 +1,4 @@
 const { showTimes } = require("../db/showTimes.cjs");
-const { movies } = require("../db/movies.cjs");
-const { theaters } = require("../db/theater.cjs");
 
 function updateShowtimesDates(showTimes) {
   const today = new Date();
@@ -265,6 +263,22 @@ module.exports = (router, db) => {
     });
   });
 
+  // Clear all showtimes (for testing) - MUST come before /showtimes/:id route
+  router.delete("/showtimes/clear-all", (req, res) => {
+    try {
+      db.set("showTimes", []).write();
+      res.json({
+        success: true,
+        message: "All showtimes cleared successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: "Failed to clear showtimes",
+        details: error.message,
+      });
+    }
+  });
+
   // Delete showtime
   router.delete("/showtimes/:id", (req, res) => {
     const showtime = db
@@ -289,300 +303,13 @@ module.exports = (router, db) => {
   // Auto-generate sample movies and showtimes
   router.post("/showtimes/generate-sample-data", (req, res) => {
     try {
-      let moviesData = db.get("movieList").value();
+      const moviesData = db.get("movieList").value();
       const theatersData = db.get("theaterList").value();
 
-      // If no movies exist, create sample movies first
       if (!moviesData || moviesData.length === 0) {
-        const sampleMovies = [
-          {
-            movie_id: Date.now() + 1,
-            title: "Avengers: Endgame",
-            description: "The epic conclusion to the Infinity Saga.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Adventure", "Drama"],
-            language: "English",
-            format: "IMAX",
-            duration: 181,
-            rating: "PG-13",
-            release_date: "2019-04-26",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 2,
-            title: "Spider-Man: No Way Home",
-            description: "Spider-Man's identity is revealed to the entire world.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Adventure", "Fantasy"],
-            language: "English",
-            format: "3D",
-            duration: 148,
-            rating: "PG-13",
-            release_date: "2021-12-17",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 3,
-            title: "The Batman",
-            description: "Batman ventures into Gotham City's underworld.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Crime", "Drama"],
-            language: "English",
-            format: "2D",
-            duration: 176,
-            rating: "PG-13",
-            release_date: "2022-03-04",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 4,
-            title: "Top Gun: Maverick",
-            description: "After thirty years, Maverick is still pushing the envelope.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Drama"],
-            language: "English",
-            format: "IMAX",
-            duration: 130,
-            rating: "PG-13",
-            release_date: "2022-05-27",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 5,
-            title: "Dune",
-            description: "A mythic and emotionally charged hero's journey.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Adventure", "Drama"],
-            language: "English",
-            format: "IMAX",
-            duration: 155,
-            rating: "PG-13",
-            release_date: "2021-10-22",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 6,
-            title: "Black Widow",
-            description: "Natasha Romanoff confronts the darker parts of her ledger.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Adventure", "Thriller"],
-            language: "English",
-            format: "2D",
-            duration: 134,
-            rating: "PG-13",
-            release_date: "2021-07-09",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 7,
-            title: "Doctor Strange in the Multiverse of Madness",
-            description: "Doctor Strange travels into the multiverse.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Adventure", "Fantasy"],
-            language: "English",
-            format: "3D",
-            duration: 126,
-            rating: "PG-13",
-            release_date: "2022-05-06",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 8,
-            title: "Thor: Love and Thunder",
-            description: "Thor attempts to find inner peace.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Adventure", "Comedy"],
-            language: "English",
-            format: "IMAX",
-            duration: 119,
-            rating: "PG-13",
-            release_date: "2022-07-08",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 9,
-            title: "Eternals",
-            description: "The saga of the Eternals spans thousands of years.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Adventure", "Drama"],
-            language: "English",
-            format: "2D",
-            duration: 157,
-            rating: "PG-13",
-            release_date: "2021-11-05",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 10,
-            title: "Shang-Chi and the Legend of the Ten Rings",
-            description: "Shang-Chi must confront the past he thought he left behind.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Adventure", "Fantasy"],
-            language: "English",
-            format: "3D",
-            duration: 132,
-            rating: "PG-13",
-            release_date: "2021-09-03",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 11,
-            title: "Fast & Furious 9",
-            description: "Dom and the crew must take on an international terrorist.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Crime", "Thriller"],
-            language: "English",
-            format: "2D",
-            duration: 143,
-            rating: "PG-13",
-            release_date: "2021-06-25",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 12,
-            title: "No Time to Die",
-            description: "James Bond has left active service.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Adventure", "Thriller"],
-            language: "English",
-            format: "IMAX",
-            duration: 163,
-            rating: "PG-13",
-            release_date: "2021-10-08",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 13,
-            title: "Godzilla vs. Kong",
-            description: "The epic next chapter in the cinematic Monsterverse.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Sci-Fi", "Thriller"],
-            language: "English",
-            format: "3D",
-            duration: 113,
-            rating: "PG-13",
-            release_date: "2021-03-31",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 14,
-            title: "Mission: Impossible - Dead Reckoning",
-            description: "Ethan Hunt and his team face their most impossible mission yet.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Adventure", "Thriller"],
-            language: "English",
-            format: "IMAX",
-            duration: 163,
-            rating: "PG-13",
-            release_date: "2023-07-12",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 15,
-            title: "John Wick: Chapter 4",
-            description: "John Wick uncovers a path to defeating The High Table.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Crime", "Thriller"],
-            language: "English",
-            format: "2D",
-            duration: 169,
-            rating: "R",
-            release_date: "2023-03-24",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 16,
-            title: "Inception",
-            description: "A thief who steals corporate secrets through dream-sharing.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Sci-Fi", "Thriller"],
-            language: "English",
-            format: "IMAX",
-            duration: 148,
-            rating: "PG-13",
-            release_date: "2010-07-16",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 17,
-            title: "Interstellar",
-            description: "A team of explorers travel through a wormhole in space.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Adventure", "Drama", "Sci-Fi"],
-            language: "English",
-            format: "IMAX",
-            duration: 169,
-            rating: "PG-13",
-            release_date: "2014-11-07",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 18,
-            title: "The Dark Knight",
-            description: "Batman raises the stakes in his war on crime.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Crime", "Drama"],
-            language: "English",
-            format: "2D",
-            duration: 152,
-            rating: "PG-13",
-            release_date: "2008-07-18",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 19,
-            title: "Avatar: The Way of Water",
-            description: "Jake Sully lives with his newfound family formed on Pandora.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Adventure", "Fantasy"],
-            language: "English",
-            format: "3D",
-            duration: 192,
-            rating: "PG-13",
-            release_date: "2022-12-16",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-          {
-            movie_id: Date.now() + 20,
-            title: "Guardians of the Galaxy Vol. 3",
-            description: "Peter Quill must rally his team for a dangerous mission.",
-            poster_url: "/src/assets/images/default-movie.png",
-            genre: ["Action", "Adventure", "Comedy"],
-            language: "English",
-            format: "IMAX",
-            duration: 150,
-            rating: "PG-13",
-            release_date: "2023-05-05",
-            status: "ACTIVE",
-            created_at: new Date().toISOString(),
-          },
-        ];
-
-        // Add sample movies to database
-        sampleMovies.forEach((movie) => {
-          db.get("movieList").push(movie).write();
+        return res.status(400).json({
+          error: "No movies found. Please add movies first to generate showtimes.",
         });
-
-        moviesData = db.get("movieList").value(); // Refresh movies data
       }
 
       if (!theatersData || theatersData.length === 0) {
@@ -662,22 +389,6 @@ module.exports = (router, db) => {
       console.error("Error generating sample data:", error);
       res.status(500).json({
         error: "Failed to generate sample data",
-        details: error.message,
-      });
-    }
-  });
-
-  // Clear all showtimes (for testing)
-  router.delete("/showtimes/clear-all", (req, res) => {
-    try {
-      db.set("showTimes", []).write();
-      res.json({
-        success: true,
-        message: "All showtimes cleared successfully",
-      });
-    } catch (error) {
-      res.status(500).json({
-        error: "Failed to clear showtimes",
         details: error.message,
       });
     }
